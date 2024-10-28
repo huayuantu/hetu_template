@@ -1,0 +1,38 @@
+http:
+  middlewares:
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+        
+  routers:
+    local-backend:
+      entryPoints:
+        - "web"
+      middlewares:
+        - "graphql-stripprefix"
+      rule: "Host(`localhost`) && PathPrefix(`/hasura/v1/graphql`)"
+      service: "hasura"
+    
+    http-backend:
+      rule: "!Host(`localhost`) && PathPrefix(`/hasura/v1/graphql`)"
+      entryPoints:
+        - web
+      service: "hasura"
+      middlewares:
+        - https-redirect
+
+    https-backend:
+      entryPoints:
+        - "websecure"
+      middlewares:
+        - "graphql-stripprefix"
+      rule: "PathPrefix(`/hasura/v1/graphql`)"
+      service: "hasura"
+      tls: {}
+
+  services:
+    hasura:
+      loadBalancer:
+        servers:
+          - url: "http://graphql-engine:8080"

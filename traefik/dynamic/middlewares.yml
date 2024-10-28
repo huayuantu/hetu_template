@@ -1,0 +1,17 @@
+http:
+  middlewares:
+    graphql-stripprefix:
+      stripPrefix:
+        prefixes:
+          - "/hasura"
+    cors-header:
+      headers:
+        accessControlAllowMethods: "*"
+        accessControlAllowHeaders: "*"
+        accessControlAllowCredentials: true
+        accessControlAllowOriginList:
+          - http://localhost:3000       # local development
+          - https://preflight-request.apollographql.com # apollo sandbox
+          - https://oauth.pstmn.io/v1/callback # postman
+        accessControlMaxAge: 100
+        addVaryHeader: true

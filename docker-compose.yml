@@ -1,0 +1,60 @@
+version: '3.9'
+
+services:
+  graphql-engine:
+    image: hasura/graphql-engine:v2.44.0
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      HASURA_GRAPHQL_METADATA_DATABASE_URL: ${HASURA_GRAPHQL_METADATA_DATABASE_URL}
+      HASURA_GRAPHQL_DEV_MODE: ${HASURA_GRAPHQL_DEV_MODE}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+      HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET}
+      HASURA_GRAPHQL_EXPERIMENTAL_FEATURES: naming_convention, apollo_federation
+      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
+      HASURA_GRAPHQL_DEFAULT_NAMING_CONVENTION: hasura-default
+      HASURA_GRAPHQL_ENABLE_APOLLO_FEDERATION: "true"
+      ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+    healthcheck:
+      test: ["CMD", "curl", "-XGET", "http://localhost:8080/healthz?strict=false"]
+      interval: 15s
+      timeout: 10s
+      start_period: 5s
+      retries: 5
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16.1-alpine3.18
+    restart: always
+    volumes:
+      - ./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "db_prod"]
+      interval: 15s
+      timeout: 10s
+      start_period: 5s
+      retries: 5
+
+  reverse-proxy:
+    image: traefik:v3.0
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443/tcp"
+      - "443:443/udp"
+    volumes:
+      - ./traefik:/etc/traefik/
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      - "host.docker.internal:172.17.0.1"
+
+networks:
+  hetu-net:
+    external: true

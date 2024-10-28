@@ -1,0 +1,37 @@
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+http3: true
+
+entryPoints:
+  web:
+    address: ":80"
+    transport:
+      lifeCycle:
+        requestAcceptGraceTimeout: 8
+        graceTimeOut: 16
+
+  websecure:
+    http3: {}
+    address: ":443"
+    transport:
+      lifeCycle:
+        requestAcceptGraceTimeout: 8
+        graceTimeOut: 16
+
+log:
+  filePath: "/etc/traefik/log/traefik.log"
+
+accessLog:
+  filePath: "/etc/traefik/log/access.log"
+  fields:
+    names:
+      StartUTC: drop
+
+api:
+  dashboard: true
