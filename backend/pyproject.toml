@@ -1,0 +1,94 @@
+[tool.poetry]
+authors = ["huayuantu <huayuan.tu@sentri.cn>"]
+description = ""
+name = "backend"
+packages = [
+  {include = "allocation", from = "src"},
+]
+readme = "README.md"
+version = "0.1.0"
+
+[tool.poetry.dependencies]
+fastapi = "^0.115.3"
+psycopg2-binary = "^2.9.10"
+pydantic = "^2.9.2"
+pydantic-settings = "^2.6.0"
+python = "^3.11"
+redis = "^5.2.0"
+requests = "^2.32.3"
+sqlalchemy = "^2.0.36"
+strawberry-graphql = "^0.247.0"
+uvicorn = "^0.32.0"
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^8.29.0"
+mypy = "^1.13.0"
+pre-commit = "^4.0.1"
+pytest = "^8.3.3"
+pytest-benchmark = "^4.0.0"
+pytest-cov = "^5.0.0"
+pytest-icdiff = "^0.9"
+ruff = "^0.7.1"
+tenacity = "^9.0.0"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
+
+[tool.ruff]
+indent-width = 4
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+# This configuration file is for the Ruff linter tool.
+# It specifies which linting rules to ignore and which to select.
+# 
+# The `ignore` section lists specific rule codes that Ruff should skip:
+# - SIM118: Ignore specific simplify rule.
+# - SIM114: Ignore another specific simplify rule.
+#
+# The `select` section lists rule codes that Ruff should enforce:
+# - E: Enforce pycodestyle rules.
+# - F: Enforce Pyflakes rules.
+# - UP: Enforce pyupgrade rules.
+# - B: Enforce flake8-bugbear rules.
+# - SIM: Enforce flake8-simplify rules.
+# - I: Enforce isort rules.
+ignore = [
+  "SIM118",
+  "SIM114",
+]
+select = [
+  "E",
+  "F",
+  "UP",
+  "B",
+  "SIM",
+  "I",
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.flake8-bugbear]
+# Allow default arguments like, e.g., `data: List[str] = fastapi.Query(None)`.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query"]
+
+[tool.ruff.format]
+# Configuration file for the Hetu Template backend project.
+# This file specifies various formatting and style guidelines for the project.
+# - docstring-code-line-length: Determines the line length for docstrings, set to "dynamic".
+# - indent-style: Specifies the indentation style, set to "space".
+# - line-ending: Defines the type of line ending to use, set to "auto".
+# - quote-style: Sets the style of quotes to use, set to "double".
+# - skip-magic-trailing-comma: Indicates whether to skip adding a trailing comma, set to false.
+docstring-code-line-length = "dynamic"
+indent-style = "space"
+line-ending = "auto"
+quote-style = "double"
+skip-magic-trailing-comma = false

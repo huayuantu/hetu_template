@@ -1,0 +1,33 @@
+repos:
+  - repo: local
+    hooks:
+      - id: install-deps
+        name: install dependencies
+        entry: just install-python-dependency
+        language: system
+        pass_filenames: false
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.4.4
+    hooks:
+      # Run the linter.
+      - id: ruff
+      # Run the formatter.
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      - id: unit-tests
+        name: unit tests
+        entry: just pytest-unit
+        language: system
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: e2e-tests
+        name: e2e tests
+        entry: just pytest-setup-postgres pytest-cov-apps
+        language: system
+        pass_filenames: false
