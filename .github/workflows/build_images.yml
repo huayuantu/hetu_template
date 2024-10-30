@@ -1,0 +1,66 @@
+name: Build Images
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  version_history:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install aliyun OSS CLI
+        run: |
+          wget https://gosspublic.alicdn.com/ossutil/1.7.7/ossutil64
+          chmod 755 ossutil64
+
+      - name: Configure OSS
+        run: |
+          ./ossutil64 config -e ${{ secrets.ALIYUN_OSS_ENDPOINT }} \
+            -i ${{ secrets.ALIYUN_OSS_ACCESS_KEY_ID }} \
+            -k ${{ secrets.ALIYUN_OSS_ACCESS_KEY_SECRET }}
+      
+      - name: Download version_history.json from Aliyun
+        run: |
+          ./ossutil64 cp oss://${{ secrets.ALIYUN_OSS_BUCKET }}/hetu/version_history.json ./version_history.json || echo '{"versions": []}' > version_history.json
+      
+      - name: Update version_history.json
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          BUILD_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          jq --arg version "$VERSION" --arg build_at "$BUILD_AT" '.versions += [{"tag": $version, "build_at": $build_at}]' version_history.json > tmp.json && mv tmp.json version_history.json
+
+      - name: Show version_history.json
+        run: |
+          echo "Contents of version_history.json:"
+          cat ./version_history.json
+
+      - name: Upload updated version_history.json to Aliyun
+        run: |
+          ./ossutil64 cp ./version_history.json oss://${{ secrets.ALIYUN_OSS_BUCKET }}/hetu/version_history.json
+
+  hetu_hasura:
+    permissions:
+      contents: read
+      packages: write
+    needs: version_history
+    uses: ./.github/workflows/reusable_build_push.yml
+    with:
+      IMAGE_NAME: hetu_hasura
+      CONTEXT: ./hasura
+      DOCKERFILE: ./hasura/Dockerfile
+      environment: production
+    secrets:
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USER }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASS }}
+      ALIYUN_OSS_ACCESS_KEY_ID: ${{ secrets.ALIYUN_OSS_ACCESS_KEY_ID }}
+      ALIYUN_OSS_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_OSS_ACCESS_KEY_SECRET }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

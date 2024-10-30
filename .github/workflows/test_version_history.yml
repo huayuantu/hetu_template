@@ -1,4 +1,0 @@
-name: Build image with version history
-
-on:
-  workflow_dispatch:
