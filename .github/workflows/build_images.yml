@@ -36,8 +36,15 @@ jobs:
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
           BUILD_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          jq --arg version "$VERSION" --arg build_at "$BUILD_AT" '.versions += [{"tag": $version, "build_at": $build_at}]' version_history.json > tmp.json && mv tmp.json version_history.json
-
+          jq --arg version "$VERSION" --arg build_at "$BUILD_AT" '
+            if any(.versions[]; .tag == $version) then
+              .versions |= map(if .tag == $version then .build_at = $build_at else . end)
+            else
+              .versions |= [{"tag": $version, "build_at": $build_at}] + .
+            end
+            | .versions |= sort_by(.tag)
+          ' version_history.json > tmp.json && mv tmp.json version_history.json
+          
       - name: Show version_history.json
         run: |
           echo "Contents of version_history.json:"
@@ -45,7 +52,7 @@ jobs:
 
       - name: Upload updated version_history.json to Aliyun
         run: |
-          ./ossutil64 cp ./version_history.json oss://${{ secrets.ALIYUN_OSS_BUCKET }}/hetu/version_history.json
+          ./ossutil64 cp -f ./version_history.json oss://${{ secrets.ALIYUN_OSS_BUCKET }}/hetu/version_history.json
 
   hetu_hasura:
     permissions:
@@ -59,8 +66,5 @@ jobs:
       DOCKERFILE: ./hasura/Dockerfile
       environment: production
     secrets:
-      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USER }}
-      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASS }}
-      ALIYUN_OSS_ACCESS_KEY_ID: ${{ secrets.ALIYUN_OSS_ACCESS_KEY_ID }}
-      ALIYUN_OSS_ACCESS_KEY_SECRET: ${{ secrets.ALIYUN_OSS_ACCESS_KEY_SECRET }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+      REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
