@@ -24,8 +24,6 @@ on:
         description: "The username of the container registry."
       REGISTRY_PASSWORD:
         description: "The password of the container registry."
-      GITHUB_TOKEN:
-        description: "The GitHub token for the repository."
 
 jobs:
   build-push:
