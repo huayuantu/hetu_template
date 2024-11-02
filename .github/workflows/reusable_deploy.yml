@@ -1,0 +1,30 @@
+name: Deploy images to remote server
+
+on:
+  workflow_call:
+    inputs:
+      IMAGE_NAME:
+        description: "The name of docker image, without version part."
+        required: true
+        type: string
+    secrets:
+      SSH_PRODUCTION_HOST:
+      SSH_PRODUCTION_USERNAME:
+      SSH_PRODUCTION_PRIVATE_KEY:
+      IMAGE_NAME:
+    
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test SSH connection
+        run: |
+          echo "Testing SSH connection to ${{ secrets.SSH_PRODUCTION_HOST }}..."
+
+      - uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_PRODUCTION_HOST }}
+          username: ${{ secrets.SSH_PRODUCTION_USERNAME }}
+          key: ${{ secrets.SSH_PRODUCTION_PRIVATE_KEY }}
+          script: |
+            docker images

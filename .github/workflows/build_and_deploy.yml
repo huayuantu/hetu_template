@@ -1,4 +1,4 @@
-name: Build Images
+name: Build Image and Deploy to Aliyun
 
 on:
   workflow_dispatch:
@@ -62,7 +62,7 @@ jobs:
           name: versions
           path: version_history.json
 
-  hetu_hasura:
+  build_image:
     permissions:
       contents: read
       packages: write
@@ -76,4 +76,16 @@ jobs:
     secrets:
       REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
-    
+  
+  deploy:
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/reusable_deploy.yml
+    with:
+      IMAGE_NAME: hetu_hasura
+    secrets:
+      SSH_PRODUCTION_HOST: ${{ secrets.SSH_PRODUCTION_HOST }}
+      SSH_PRODUCTION_USERNAME: ${{ secrets.SSH_PRODUCTION_USERNAME }}
+      SSH_PRODUCTION_PRIVATE_KEY: ${{ secrets.SSH_PRODUCTION_PRIVATE_KEY }}
+
