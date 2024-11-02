@@ -12,6 +12,8 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      ACTIONS_RUNTIME_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -53,6 +55,12 @@ jobs:
       - name: Upload updated version_history.json to Aliyun
         run: |
           ./ossutil64 cp -f ./version_history.json oss://${{ secrets.ALIYUN_OSS_BUCKET }}/hetu/version_history.json
+      
+      - name: Upload version_history.json as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: versions
+          path: version_history.json
 
   hetu_hasura:
     permissions:
@@ -68,3 +76,4 @@ jobs:
     secrets:
       REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
       REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+    
